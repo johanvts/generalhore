@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Generalhore</title>
+    <style>
+
+      * {
+        padding: 0;
+        margin: 0;
+      }
+
+      .left {
+        float: left;
+        clear: left;
+        transform-origin: 150% 35%;
+      }
+      .right {
+        float: right;
+        clear: right;
+        transform-origin: -50% 35%;
+      }
+      .hidden {
+        display: none;
+      }
+
+      .profile {
+        width: 30%;
+        margin: 5%;
+      }
+
+      .rapper {
+        width: 100%;
+        -webkit-animation: pulsate 0.5s ease-out;
+        -webkit-animation-iteration-count: infinite;
+      }
+
+      @-webkit-keyframes pulsate {
+        0% {-webkit-transform: scale(0.95, 0.95);}
+        50% {-webkit-transform: scale(1.05, 1.05);}
+        100% {-webkit-transform: scale(0.95, 0.95);}
+      }
+
+      .rap, .name {
+        font-family: Impact;
+        text-transform: uppercase;
+        color: white;
+      }
+
+      .rap {
+        width: 50%;
+        margin: 5%;
+        font-size: 5vw;
+        color: yellow;
+        -webkit-animation: fly 5s ease-out;
+      }
+
+      @-webkit-keyframes fly {
+        0% {-webkit-transform: scale(0, 0);}
+        10% {-webkit-transform: scale(1, 1);}
+        90% {-webkit-transform: scale(1, 1); opacity: 1;}
+        100% {-webkit-transform: scale(2, 2); opacity: 0;}
+      }
+
+      .name {
+        font-size: 2vw;
+        margin-top: 1em;
+        text-align: center;
+      }
+
+      #overlay {
+        background: black;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        opacity: 0.8;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="one">
+      <div class="profile left">
+        <img class="rapper">
+        <p class="name"></p>
+      </div>
+      <div class="rap right"></div>
+    </div>
+    <div id="two">
+      <div class="profile right">
+        <img class="rapper">
+        <p class="name"></p>
+      </div>
+      <div class="rap left"></div>
+    </div>
+    <!-- http://www.labnol.org/internet/youtube-video-background/27933/ -->
+    <div id="overlay"></div>
+    <div style="position: fixed; z-index: -2; width: 100%; height: 100%">
+      <iframe frameborder="0" height="100%" width="100%"
+        src="https://youtube.com/embed/uuWQyfGa1yI?autoplay=1&controls=0&showinfo=0&autohide=1&loop=1&playlist=uuWQyfGa1yI">
+      </iframe>
+    </div>
+    <script>
+      var tekster = [[
+      "Du ka ikke følge mit tempo, jeg kendt som ham der Sonic",
+      "Tjener money på at stik min pik ind i din honey",
+      "Jeg kalder hende for Connie selvom jeg ved hun hedder Lonnie",
+      "Blot for at se hendes forvirrede fjæs som jeg kan kom i",
+      "Hun er sgu for nasty og hun har klamme lange hængepatter",
+      "Du går falit, for når jeg knalder hende skal jeg ha penge af dig",
+      "Især fordi jeg tager hende på akkord i dobbelt tempo",
+      "Hun er så ulækker, at du skulle tage og holde dig væk nu"],
+      ["Mc Dværg, jeg ved at du har trang til min kæmpe croissant",
+      "Du har lige højden til at gag på min borgmester stang",
+      "For den er stor og fed, wienerbrød der gør dig blæs'",
+      "Så fortæl mig - vil du have creme eller glasur i dit fjæs",
+      "For jeg kringler det her rap, tager dig i det bagerste hul",
+      "For jeg er nasty, langt beskitdtere end et bagergulv",
+      "For jeg har så svært ved at styre mine dyriske lyster",
+      "Jeg putter ikke mine kager i ovnen, jeg putter dem i din søster"]];
+      var containers = [
+        document.querySelector('#one'),
+        document.querySelector('#two'),
+      ]
+      var raps = [
+        document.querySelector('#one .rap'),
+        document.querySelector('#two .rap'),
+      ]
+      var rappers = [
+        document.querySelector('#one .rapper'),
+        document.querySelector('#two .rapper'),
+      ]
+      var names = [
+        document.querySelector('#one .name'),
+        document.querySelector('#two .name'),
+      ]
+      containers[1].classList.toggle('hidden')
+      var rapping = 0
+      var count = 0
+      raps[0].innerHTML = tekster[0][0]
+      setInterval(() => {
+        containers.forEach(c => c.classList.toggle('hidden'))
+        rapping = rapping == 0 ? 1 : 0
+        raps[rapping].innerHTML = tekster[rapping][count]
+        if (rapping == 1) count++
+      }, 5000);
+
+      var flickrUrl = 'https://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=b50ee4dcdb6c99df948ff2cfb7884df5&photoset_id=72157650969693930&format=json&nojsoncallback=1&api_sig=5cc443d844e515780fa8e44a34ce4108'
+
+      var oReq = new XMLHttpRequest();
+      oReq.addEventListener('load', stuff => {
+        var photos = JSON.parse(oReq.responseText).photoset.photo
+        var chosen = [
+          photos.splice(Math.floor(Math.random() * photos.length), 1)[0],
+          photos.splice(Math.floor(Math.random() * photos.length), 1)[0],
+        ]
+        chosen.forEach((photo, i) => {
+          var url = `https://farm${photo.farm}.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}.jpg`
+          rappers[i].src = url
+          names[i].innerHTML = photo.title.slice(4)
+        })
+      });
+      oReq.open('GET', flickrUrl);
+      oReq.send();
+
+    </script>
+  </body>
+</html>

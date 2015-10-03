@@ -38,8 +38,8 @@
       }
 
       .profile {
-        width: 30%;
-        margin: 5%;
+        width: 28%;
+        margin: 3%;
       }
 
       .profile img {
@@ -91,7 +91,7 @@
       #overlay {
         background: black;
         z-index: -1;
-        opacity: 0.8;
+        opacity: 0.65;
       }
 
       #player {
@@ -145,7 +145,6 @@
     <!-- Magic goes here -->
     <script src="text.js"></script>
     <script>
-      window.speechSynthesis.getVoices() // Start loading voices immediatly
       var tekster = [[], []]
       tekster.forEach(tekst => {
         while(text.length && tekst.length < 500) {
@@ -182,36 +181,40 @@
         raps[rapping].innerHTML = tekster[rapping][count]
         sayStuff(tekster[rapping][count])
       }
-      setTimeout(() => {
-        document.querySelector('#vs').classList.toggle('hidden')
-        rappers[1].classList.toggle('hidden')
-        textTrigger()
-        setInterval(() => {
-          rappers.forEach(c => c.classList.toggle('hidden'))
-          rapping = rapping == 0 ? 1 : 0
+
+      window.speechSynthesis.getVoices()
+      window.speechSynthesis.onvoiceschanged = () => {
+
+        var urlFlickr = 'https://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=b50ee4dcdb6c99df948ff2cfb7884df5&photoset_id=72157650969693930&format=json&nojsoncallback=1&api_sig=5cc443d844e515780fa8e44a34ce4108'
+        var oReq = new XMLHttpRequest();
+        oReq.addEventListener('load', stuff => {
+          var photos = JSON.parse(oReq.responseText).photoset.photo
+          var chosen = [
+            photos.splice(Math.floor(Math.random() * photos.length), 1)[0],
+            photos.splice(Math.floor(Math.random() * photos.length), 1)[0],
+          ]
+          chosen.forEach((photo, i) => {
+            var url = `https://farm${photo.farm}.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}.jpg`
+            images[i].src = url
+            names[i].innerHTML = photo.title.slice(4)
+            sayStuff(`I det ${i ? 'andet' : 'ene'} ringhjørne har vi: ${photo.title.slice(4)}`)
+          })
+        });
+        oReq.open('GET', urlFlickr);
+        oReq.send();
+
+        setTimeout(() => {
+          document.querySelector('#vs').classList.toggle('hidden')
+          rappers[1].classList.toggle('hidden')
           textTrigger()
-          if (rapping == 1) count++
-        }, 5000);
-      }, 10000);
-
-      var urlFlickr = 'https://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=b50ee4dcdb6c99df948ff2cfb7884df5&photoset_id=72157650969693930&format=json&nojsoncallback=1&api_sig=5cc443d844e515780fa8e44a34ce4108'
-
-      var oReq = new XMLHttpRequest();
-      oReq.addEventListener('load', stuff => {
-        var photos = JSON.parse(oReq.responseText).photoset.photo
-        var chosen = [
-          photos.splice(Math.floor(Math.random() * photos.length), 1)[0],
-          photos.splice(Math.floor(Math.random() * photos.length), 1)[0],
-        ]
-        chosen.forEach((photo, i) => {
-          var url = `https://farm${photo.farm}.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}.jpg`
-          images[i].src = url
-          names[i].innerHTML = photo.title.slice(4)
-          sayStuff(`I det ${i ? 'andet' : 'ene'} ringhjørne har vi: ${photo.title.slice(4)}`)
-        })
-      });
-      oReq.open('GET', urlFlickr);
-      oReq.send();
+          setInterval(() => {
+            rappers.forEach(c => c.classList.toggle('hidden'))
+            rapping = rapping == 0 ? 1 : 0
+            textTrigger()
+            if (rapping == 1) count++
+          }, 5000);
+        }, 10000);
+      }
 
       // http://www.westword.com/music/the-ten-best-rap-videos-of-all-time-5710102
       var videos = [

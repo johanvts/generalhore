@@ -111,6 +111,13 @@
     <!-- http://www.labnol.org/internet/youtube-video-background/27933/ -->
     <div id="overlay"></div>
     <div id="player"></div>
+
+    <audio id="beat" autoplay>
+      <source src="beat.mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+
+    <!-- Magic goes here -->
     <script>
       var tekster = [[
       "Du ka ikke følge mit tempo, jeg kendt som ham der Sonic",
@@ -153,6 +160,10 @@
         containers.forEach(c => c.classList.toggle('hidden'))
         rapping = rapping == 0 ? 1 : 0
         raps[rapping].innerHTML = tekster[rapping][count]
+        var danish = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('da'))[0]
+        var utterance = new SpeechSynthesisUtterance(tekster[rapping][count])
+        utterance.voice = danish
+        window.speechSynthesis.speak(utterance)
         if (rapping == 1) count++
       }, 5000);
 
@@ -180,7 +191,6 @@
         'sNPnbI1arSE',
         'Y34jC4I1m70',
         'z5rRZdiu1UE',
-        '-MrQtOoQRpc',
         'FPoKiGQzbSQ',
         'co3qMdkucM0',
       ]
@@ -216,6 +226,9 @@
       function onPlayerReady(event) {
         event.target.mute();
       }
+
+      var beat = document.getElementById("beat");
+      beat.volume = 0.3;
     </script>
   </body>
 </html>

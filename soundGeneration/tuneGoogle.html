@@ -1,14 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+  </head>
 <body>
   <script src="js/dsp.js"></script>
   <script src="js/pitchShift.js"></script>
 <script>
 
 
-playWithPitchShift(0.8)
+playTextWithPitchSpeed("og se hende brænde", 0.6, 1.2)
 
-function playWithPitchShift(shift) {
+function playWithPitchShift(text, shift, rate) {
   // var url = 'http://thingsinjars.com/lab/web-audio-tutorial/hello.mp3'
-  var url = 'http://translate.google.com/translate_tts?tl=da&q=Og%20se%20hende%20brande'
+  var url = 'http://translate.google.com/translate_tts?tl=da&q=' + encodeURIComponent(text)
+  console.log(url)
 
   var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -56,9 +62,10 @@ function playWithPitchShift(shift) {
   // This is the code we are interested in
   function audioGraph(audioData) {
       // create a sound source
-      soundSource = audioCtx.createBufferSource();
-      soundSource.connect(scriptNode);
-      scriptNode.connect(audioCtx.destination);
+      soundSource = audioCtx.createBufferSource()
+      soundSource.playbackRate.value = rate
+      soundSource.connect(scriptNode)
+      scriptNode.connect(audioCtx.destination)
 
       // The Audio Context handles creating source buffers from raw binary
       audioCtx.decodeAudioData(audioData, function(soundBuffer){

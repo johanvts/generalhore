@@ -21,9 +21,17 @@ scriptNode.onaudioprocess = function(audioProcessingEvent) {
     var inputData = inputBuffer.getChannelData(channel);
     var outputData = outputBuffer.getChannelData(channel);
 
-    outputData = getSlice()
+    var slice = getSlice()
+    var slice = slice.map(v => v * 2 - 1)
 
-    // for (var sample = 0; sample < inputBuffer.length; sample++) {
+    console.log(slice[0])
+
+    slice = icfft(slice)
+
+    for (var sample = 0; sample < outputBuffer.length; sample++) {
+      outputData[sample] = slice[sample].re
+
+
     //   // input = new Array(4096)
     //   // for (var sample = 0; sample < input.length; sample++) {
     //   //   input[sample] = 0;
@@ -36,15 +44,16 @@ scriptNode.onaudioprocess = function(audioProcessingEvent) {
     //   // // console.log( icfft(input) );
     //   // var output = icfft(input)
     //
-    //   // outputData[sample] = inputData[sample];
+    // outputData[sample] = Math.random();
+
     //
     //   // console.log(output[sample].re)
     //
     //   // outputData[sample] = slices[0][sample]
     //   // add noise to each output sample
     //   // outputData[sample] += ((Math.random() * 2) - 1) * 0.2;
-    // }
-    console.log(outputData)
+    }
+    // console.log(outputData)
   }
 }
 
@@ -74,7 +83,7 @@ document.body.appendChild(canvas);
 function draw() {
 
   drawVisual = requestAnimationFrame(draw);
-  analyser.getByteTimeDomainData(dataArray);
+  analyser.getByteFrequencyData(dataArray);
 
   canvasCtx.fillStyle = 'rgb(200, 200, 200)';
   canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
@@ -152,8 +161,9 @@ function getSlice() {
   return slices[sliceIndex]
 }
 
-getSlices('https://farm9.staticflickr.com/8693/16891485046_dd0615aab3_o_d.jpg')
+// getSlices('https://farm9.staticflickr.com/8693/16891485046_dd0615aab3_o_d.jpg')
+getSlices('http://i.imgur.com/cBbnrYN.jpg')
   .then(r => {slices = r
     console.log(slices)
-    connectNodesAndStart();
+    // connectNodesAndStart();
   });

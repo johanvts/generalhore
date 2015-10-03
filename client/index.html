@@ -10,6 +10,10 @@
         margin: 0;
       }
 
+      body {
+        font-family: Impact;
+      }
+
       .left {
         float: left;
         clear: left;
@@ -24,12 +28,21 @@
         display: none;
       }
 
+      .rapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+      }
+
       .profile {
         width: 30%;
         margin: 5%;
       }
 
-      .rapper {
+      .profile img {
         width: 100%;
         -webkit-animation: pulsate 0.5s ease-out;
         -webkit-animation-iteration-count: infinite;
@@ -42,7 +55,6 @@
       }
 
       .rap, .name {
-        font-family: Impact;
         text-transform: uppercase;
         color: white;
       }
@@ -91,19 +103,32 @@
         height: 100%;
       }
 
+      #vs {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        z-index: 0;
+        color: white;
+        font-size: 10vw;
+        width: 10vw;
+        margin-left: -5vw;
+        text-align: center;
+      }
+
     </style>
   </head>
   <body>
-    <div id="one">
+    <div id="one" class="rapper">
       <div class="profile left">
-        <img class="rapper">
+        <img>
         <p class="name"></p>
       </div>
       <div class="rap right"></div>
     </div>
-    <div id="two">
+    <div id="vs">vs</div>
+    <div id="two" class="rapper">
       <div class="profile right">
-        <img class="rapper">
+        <img>
         <p class="name"></p>
       </div>
       <div class="rap left"></div>
@@ -112,31 +137,24 @@
     <div id="overlay"></div>
     <div id="player"></div>
 
-    <audio id="beat" autoplay>
+    <audio id="beat" autoplay loop>
       <source src="beat.mp3" type="audio/mpeg">
       Your browser does not support the audio element.
     </audio>
 
     <!-- Magic goes here -->
+    <script src="text.js"></script>
     <script>
-      var tekster = [[
-      "Du ka ikke følge mit tempo, jeg kendt som ham der Sonic",
-      "Tjener money på at stik min pik ind i din honey",
-      "Jeg kalder hende for Connie selvom jeg ved hun hedder Lonnie",
-      "Blot for at se hendes forvirrede fjæs som jeg kan kom i",
-      "Hun er sgu for nasty og hun har klamme lange hængepatter",
-      "Du går falit, for når jeg knalder hende skal jeg ha penge af dig",
-      "Især fordi jeg tager hende på akkord i dobbelt tempo",
-      "Hun er så ulækker, at du skulle tage og holde dig væk nu"],
-      ["Mc Dværg, jeg ved at du har trang til min kæmpe croissant",
-      "Du har lige højden til at gag på min borgmester stang",
-      "For den er stor og fed, wienerbrød der gør dig blæs'",
-      "Så fortæl mig - vil du have creme eller glasur i dit fjæs",
-      "For jeg kringler det her rap, tager dig i det bagerste hul",
-      "For jeg er nasty, langt beskitdtere end et bagergulv",
-      "For jeg har så svært ved at styre mine dyriske lyster",
-      "Jeg putter ikke mine kager i ovnen, jeg putter dem i din søster"]];
-      var containers = [
+      window.speechSynthesis.getVoices() // Start loading voices immediatly
+      var tekster = [[], []]
+      tekster.forEach(tekst => {
+        while(text.length && tekst.length < 500) {
+          var ekstra = text.splice(Math.floor(Math.random() * text.length), 1)[0]
+          ekstra.forEach(line => tekst.push(line))
+        }
+      })
+      console.log(tekster)
+      var rappers = [
         document.querySelector('#one'),
         document.querySelector('#two'),
       ]
@@ -144,30 +162,39 @@
         document.querySelector('#one .rap'),
         document.querySelector('#two .rap'),
       ]
-      var rappers = [
-        document.querySelector('#one .rapper'),
-        document.querySelector('#two .rapper'),
+      var images = [
+        document.querySelector('#one img'),
+        document.querySelector('#two img'),
       ]
       var names = [
         document.querySelector('#one .name'),
         document.querySelector('#two .name'),
       ]
-      containers[1].classList.toggle('hidden')
       var rapping = 0
       var count = 0
-      raps[0].innerHTML = tekster[0][0]
-      setInterval(() => {
-        containers.forEach(c => c.classList.toggle('hidden'))
-        rapping = rapping == 0 ? 1 : 0
-        raps[rapping].innerHTML = tekster[rapping][count]
+      function sayStuff (text) {
         var danish = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('da'))[0]
-        var utterance = new SpeechSynthesisUtterance(tekster[rapping][count])
+        var utterance = new SpeechSynthesisUtterance(text)
         utterance.voice = danish
         window.speechSynthesis.speak(utterance)
-        if (rapping == 1) count++
-      }, 5000);
+      }
+      function textTrigger () {
+        raps[rapping].innerHTML = tekster[rapping][count]
+        sayStuff(tekster[rapping][count])
+      }
+      setTimeout(() => {
+        document.querySelector('#vs').classList.toggle('hidden')
+        rappers[1].classList.toggle('hidden')
+        textTrigger()
+        setInterval(() => {
+          rappers.forEach(c => c.classList.toggle('hidden'))
+          rapping = rapping == 0 ? 1 : 0
+          textTrigger()
+          if (rapping == 1) count++
+        }, 5000);
+      }, 10000);
 
-      var flickrUrl = 'https://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=b50ee4dcdb6c99df948ff2cfb7884df5&photoset_id=72157650969693930&format=json&nojsoncallback=1&api_sig=5cc443d844e515780fa8e44a34ce4108'
+      var urlFlickr = 'https://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=b50ee4dcdb6c99df948ff2cfb7884df5&photoset_id=72157650969693930&format=json&nojsoncallback=1&api_sig=5cc443d844e515780fa8e44a34ce4108'
 
       var oReq = new XMLHttpRequest();
       oReq.addEventListener('load', stuff => {
@@ -178,11 +205,12 @@
         ]
         chosen.forEach((photo, i) => {
           var url = `https://farm${photo.farm}.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}.jpg`
-          rappers[i].src = url
+          images[i].src = url
           names[i].innerHTML = photo.title.slice(4)
+          sayStuff(`I det ${i ? 'andet' : 'ene'} ringhjørne har vi: ${photo.title.slice(4)}`)
         })
       });
-      oReq.open('GET', flickrUrl);
+      oReq.open('GET', urlFlickr);
       oReq.send();
 
       // http://www.westword.com/music/the-ten-best-rap-videos-of-all-time-5710102

@@ -1,4 +1,5 @@
 <body>
+<script src="http://mohayonao.github.io/timbre.js/timbre.js"></script>
 <script>
 
 function getImage (url) {
@@ -28,8 +29,8 @@ function getSlices (url, width, height) {
         var slice = []
         var pointer
         for (var y = 0; y < height; y++) {
-          start = (x * height + y) * 3
-          slice[y] = (data[start + 0] + data[start + 1] + data[start + 2]) / 3
+          start = (x + y * width) * 3
+          slice[y] = (data[start + 0] + data[start + 1] + data[start + 2]) / (3*255)
         }
         slices.push(slice)
       }
@@ -42,7 +43,17 @@ getSlices(
   'https://farm9.staticflickr.com/8693/16891485046_dd0615aab3_o_d.jpg',
   500,
   100
-).then(r => console.log(r));
+).then(r => {
+  // 50-3000
+  console.log(r)
+  var sin = T("sin", {mul:0.1}).play();
+  var i = 0
+  setInterval(function () {
+    sin.set({freq: r[i][50] * 3000})
+    i++
+  }, 200);
+
+});
 
 </script>
 </body>

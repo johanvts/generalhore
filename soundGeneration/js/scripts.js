@@ -9,7 +9,7 @@ oscillator.type = 'sine';
 oscillator.frequency.value = 204.8; // value in hertz
 
 // Create a ScriptProcessorNode with a bufferSize of 4096 and a single input and output channel
-var scriptNode = audioCtx.createScriptProcessor(2048, 1, 1);
+var scriptNode = audioCtx.createScriptProcessor(4096, 1, 1);
 
 // Give the node a function to process audio events
 scriptNode.onaudioprocess = function(audioProcessingEvent) {
@@ -22,14 +22,12 @@ scriptNode.onaudioprocess = function(audioProcessingEvent) {
     var outputData = outputBuffer.getChannelData(channel);
 
     var slice = getSlice()
-    var slice = slice.map(v => v * 2 - 1)
-
-    console.log(slice[0])
 
     slice = icfft(slice)
 
     for (var sample = 0; sample < outputBuffer.length; sample++) {
       outputData[sample] = slice[sample].re
+      // outputData[sample] = slice[sample]
 
 
     //   // input = new Array(4096)
@@ -55,13 +53,14 @@ scriptNode.onaudioprocess = function(audioProcessingEvent) {
     }
     // console.log(outputData)
   }
+  // console.log(outputData[1024])
 }
 
 
 
 // create analyser
 var analyser = audioCtx.createAnalyser();
-analyser.fftSize = 2048;
+analyser.fftSize = 4096;
 var bufferLength = analyser.frequencyBinCount;
 var dataArray = new Uint8Array(bufferLength);
 
@@ -116,13 +115,11 @@ function draw() {
 
 draw();
 
-
-
 function getSlices (url) {
   return new Promise(function(resolve, reject) {
 
     var width = 500
-    var height = 2048
+    var height = 4096
 
     var img = new Image()
     img.crossOrigin="anonymous"
@@ -141,10 +138,11 @@ function getSlices (url) {
 
       for (var x = 0; x < width; x++) {
         var slice = []
-        var pointer
+        var s
         for (var y = 0; y < height; y++) {
-          start = (x * height + y) * 3
-          slice[y] = (data[start + 0] + data[start + 1] + data[start + 2]) / (3*256)
+          s = (x + y * width) * 4
+          slice[y] = (data[s + 0] + data[s + 1] + data[s + 2]) / (3*255)
+          slice[y] = (1 - slice[y]) * (4096 * 0.05)
         }
         slices.push(slice)
       }
@@ -153,17 +151,19 @@ function getSlices (url) {
   })
 }
 
-console.log("Abe");
-
 var sliceIndex = -1
 function getSlice() {
   sliceIndex++
   return slices[sliceIndex]
 }
 
-// getSlices('https://farm9.staticflickr.com/8693/16891485046_dd0615aab3_o_d.jpg')
-getSlices('http://i.imgur.com/cBbnrYN.jpg')
-  .then(r => {slices = r
-    console.log(slices)
-    // connectNodesAndStart();
+getSlices('https://farm9.staticflickr.com/8693/16891485046_dd0615aab3_o_d.jpg')
+// getSlices('http://i.imgur.com/cBbnrYN.jpg')
+  .then(r => {
+    slices = r
+    // r.forEach(s => {
+    //   console.log(s[1024])
+    // })
+    // console.log(slices[])
+    connectNodesAndStart();
   });

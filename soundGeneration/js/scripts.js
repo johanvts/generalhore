@@ -1,0 +1,159 @@
+var slices
+
+// create web audio api context
+var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+// create Oscillator node
+var oscillator = audioCtx.createOscillator();
+oscillator.type = 'sine';
+oscillator.frequency.value = 204.8; // value in hertz
+
+// Create a ScriptProcessorNode with a bufferSize of 4096 and a single input and output channel
+var scriptNode = audioCtx.createScriptProcessor(2048, 1, 1);
+
+// Give the node a function to process audio events
+scriptNode.onaudioprocess = function(audioProcessingEvent) {
+  var inputBuffer = audioProcessingEvent.inputBuffer;
+  var outputBuffer = audioProcessingEvent.outputBuffer;
+
+  // Loop through the output channels (in this case there is only one)
+  for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
+    var inputData = inputBuffer.getChannelData(channel);
+    var outputData = outputBuffer.getChannelData(channel);
+
+    outputData = getSlice()
+
+    // for (var sample = 0; sample < inputBuffer.length; sample++) {
+    //   // input = new Array(4096)
+    //   // for (var sample = 0; sample < input.length; sample++) {
+    //   //   input[sample] = 0;
+    //   // }
+    //   //
+    //   // input[10] = 4096;
+    //   // input[20] = 4096;
+    //   // input[50] = 4096;
+    //   // // console.log(input);
+    //   // // console.log( icfft(input) );
+    //   // var output = icfft(input)
+    //
+    //   // outputData[sample] = inputData[sample];
+    //
+    //   // console.log(output[sample].re)
+    //
+    //   // outputData[sample] = slices[0][sample]
+    //   // add noise to each output sample
+    //   // outputData[sample] += ((Math.random() * 2) - 1) * 0.2;
+    // }
+    console.log(outputData)
+  }
+}
+
+
+
+// create analyser
+var analyser = audioCtx.createAnalyser();
+analyser.fftSize = 2048;
+var bufferLength = analyser.frequencyBinCount;
+var dataArray = new Uint8Array(bufferLength);
+
+function connectNodesAndStart() {
+  oscillator.connect(scriptNode);
+  scriptNode.connect(analyser);
+  analyser.connect(audioCtx.destination);
+  oscillator.start();
+}
+
+var canvas = document.createElement('canvas')
+WIDTH = 700;
+HEIGHT = 500;
+canvas.height = HEIGHT;
+canvas.width = WIDTH;
+var canvasCtx = canvas.getContext('2d');
+document.body.appendChild(canvas);
+
+function draw() {
+
+  drawVisual = requestAnimationFrame(draw);
+  analyser.getByteTimeDomainData(dataArray);
+
+  canvasCtx.fillStyle = 'rgb(200, 200, 200)';
+  canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+
+  canvasCtx.lineWidth = 2;
+  canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+
+  canvasCtx.beginPath();
+
+  var sliceWidth = WIDTH * 1.0 / bufferLength;
+  var x = 0;
+
+  for(var i = 0; i < bufferLength; i++) {
+
+    var v = dataArray[i] / 128.0;
+    var y = v * HEIGHT/2;
+
+    if(i === 0) {
+      canvasCtx.moveTo(x, y);
+    } else {
+      canvasCtx.lineTo(x, y);
+    }
+
+    x += sliceWidth;
+  }
+
+  canvasCtx.lineTo(canvas.width, canvas.height/2);
+  canvasCtx.stroke();
+};
+
+draw();
+
+
+
+function getSlices (url) {
+  return new Promise(function(resolve, reject) {
+
+    var width = 500
+    var height = 2048
+
+    var img = new Image()
+    img.crossOrigin="anonymous"
+    img.src = url
+
+    var slices = []
+
+    img.addEventListener("load", function() {
+      var canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+      document.body.appendChild(canvas)
+
+      var data = canvas.getContext('2d').getImageData(0, 0, width, height).data
+
+      for (var x = 0; x < width; x++) {
+        var slice = []
+        var pointer
+        for (var y = 0; y < height; y++) {
+          start = (x * height + y) * 3
+          slice[y] = (data[start + 0] + data[start + 1] + data[start + 2]) / (3*256)
+        }
+        slices.push(slice)
+      }
+      resolve(slices);
+    })
+  })
+}
+
+console.log("Abe");
+
+var sliceIndex = -1
+function getSlice() {
+  sliceIndex++
+  return slices[sliceIndex]
+}
+
+getSlices('https://farm9.staticflickr.com/8693/16891485046_dd0615aab3_o_d.jpg')
+  .then(r => {slices = r
+    console.log(slices)
+    connectNodesAndStart();
+  });

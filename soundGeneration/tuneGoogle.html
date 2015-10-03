@@ -5,22 +5,24 @@
   </head>
 <body>
   <script src="js/dsp.js"></script>
-  <script src="js/pitchShift.js"></script>
+  <script src="js/freqSound.js"></script>
 <script>
 
 
-playTextWithPitchSpeed("og se hende brænde", 0.6, 1.2)
+playTextWithPitchSpeed("og se hende brænde", 1.0, 1.0)
 
-function playWithPitchShift(text, shift, rate) {
-  // var url = 'http://thingsinjars.com/lab/web-audio-tutorial/hello.mp3'
-  var url = 'http://translate.google.com/translate_tts?tl=da&q=' + encodeURIComponent(text)
+function playTextWithPitchSpeed(text, shift, rate) {
+  var url = 'http://thingsinjars.com/lab/web-audio-tutorial/hello.mp3'
+  // var url = 'http://translate.google.com/translate_tts?tl=da&q=' + encodeURIComponent(text)
   console.log(url)
 
   var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
   var fftFrameSize = 2048;
   var nSamples = 2048;
-  var shifter = new Pitchshift(fftFrameSize, audioCtx.sampleRate, 'FFT');
+  var fft = new FFT(fftFrameSize, audioCtx.sampleRate);
+  // var shifter = new Pitchshift(fftFrameSize, audioCtx.sampleRate, 'FFT');
+  var shifter = new FreqSound(fftFrameSize, audioCtx.sampleRate, 'FFT');
 
   var scriptNode = audioCtx.createScriptProcessor(nSamples, 1, 1);
 
@@ -35,7 +37,13 @@ function playWithPitchShift(text, shift, rate) {
       var inputData = inputBuffer.getChannelData(channel);
       var outputData = outputBuffer.getChannelData(channel);
 
-      shifter.process(shift, inputData.length, 4, inputData);
+      // fft.forward(inputData)
+      data = getFrequencies([200,400,Math.random()*1000], fftFrameSize, audioCtx.sampleRate)
+      for (var i = 0; i < fft.real.length; i++) {
+        fft.real[i] = data[i]
+      }
+
+      shifter.process(shift, inputData.length, 4, inputData, fft);
       var out_data = outputData;
       for (i = 0; i < out_data.length; ++i) {
           out_data[i] = shifter.outdata[i];
@@ -59,6 +67,19 @@ function playWithPitchShift(text, shift, rate) {
           request.send();
       }
 
+    // var coolEffect = (function() {
+    //     var convolver = audioCtx.createConvolver(),
+    //         noiseBuffer = audioCtx.createBuffer(2, 0.2 * audioCtx.sampleRate, audioCtx.sampleRate),
+    //         left = noiseBuffer.getChannelData(0),
+    //         right = noiseBuffer.getChannelData(1);
+    //     for (var i = 0; i < noiseBuffer.length; i++) {
+    //         left[i] = Math.random() * 2 - 1;
+    //         right[i] = Math.random() * 2 - 1;
+    //     }
+    //     convolver.buffer = noiseBuffer;
+    //     return convolver;
+    //   })();
+
   // This is the code we are interested in
   function audioGraph(audioData) {
       // create a sound source
@@ -66,22 +87,49 @@ function playWithPitchShift(text, shift, rate) {
       soundSource.playbackRate.value = rate
       soundSource.connect(scriptNode)
       scriptNode.connect(audioCtx.destination)
+      // scriptNode.connect(coolEffect)
+      // CoVeffect.connect(audioCtx.destination)
 
       // The Audio Context handles creating source buffers from raw binary
       audioCtx.decodeAudioData(audioData, function(soundBuffer){
           soundSource.buffer = soundBuffer;
-          playSound(soundSource);
+          soundSource.start(audioCtx.currentTime);
       });
   }
-
-  function playSound() {
-      // play the source now
-      soundSource.start(audioCtx.currentTime);
-  }
-
   startSound()
 }
 
+function fullFreqVector(inputFreq, fftFrameSize) {
+  if (inputFreq.length*2 != fftFrameSize) {
+    console.log("length Error")
+  }
+  var out = new Array(fftFrameSize)
+  for (var i = 0; i <= fftFrameSize_2; i++) {
+    out[i] = inputFreq[i];
+  }
+  for (var i = 1; i<fftFrameSize_2; i++) {
+    out[fftFrameSize_2+i] = out[fftFrameSize_2-i]
+  }
+  return out
+}
+
+function getFrequencies(frequyencies, fftFrameSize, sampleRate) {
+  freqPerBin = sampleRate / fftFrameSize
+  fftFrameSize_2 = fftFrameSize/2
+  var out = new Array(fftFrameSize)
+  for (var i = 0; i <= fftFrameSize_2; i++) {
+    out[i] = 0;
+  }
+
+  for (var i = 0; i < frequyencies.length; i++) {
+    out[Math.floor(frequyencies[i]/freqPerBin)]=fftFrameSize/(frequyencies.length*2)
+  }
+
+  for (var i = 1; i<fftFrameSize_2; i++) {
+    out[fftFrameSize_2+i] = out[fftFrameSize_2-i]
+  }
+  return out
+}
 
 </script>
 </body>

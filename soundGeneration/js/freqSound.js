@@ -1,8 +1,8 @@
-function Pitchshift(fftFrameSize, sampleRate, algo) {
+function FreqSound(fftFrameSize, sampleRate, algo) {
   if( arguments.length ) { this.getready(fftFrameSize, sampleRate, algo); }
 }
 
-Pitchshift.prototype.getready = function (fftFrameSize, sampleRate, algo) {
+FreqSound.prototype.getready = function (fftFrameSize, sampleRate, algo) {
     this.fftFrameSize_ = fftFrameSize;
     this.sampleRate_= sampleRate;
     this.hannWindow_ = []
@@ -60,11 +60,11 @@ Pitchshift.prototype.getready = function (fftFrameSize, sampleRate, algo) {
     //Probably we don't need this.
     this.invFFT = new FFT(this.fftFrameSize_, this.sampleRate_);
 
-    console.log ("Pitchshift.prototype.getready returns back");
+    console.log ("FreqSound.prototype.getready returns back");
 
 };
 
-Pitchshift.prototype.process = function (pitchShift, numSampsToProcess, osamp, indata) {
+FreqSound.prototype.process = function (pitchShift, numSampsToProcess, osamp, indata, fftIn) {
 
 
     function setArray(array, length, val) {
@@ -91,7 +91,7 @@ Pitchshift.prototype.process = function (pitchShift, numSampsToProcess, osamp, i
 	for (j = 0; j < numSampsToProcess; j++){
             /* As long as we have not yet collected enough data just read in */
 		this.gInFIFO[this.gRover_] = indata[j];
-		this.outdata[j] = this.gOutFIFO[this.gRover_ - inFifoLatency];
+    this.outdata[j] = this.gOutFIFO[this.gRover_ - inFifoLatency];
 		this.gRover_++;
 
 		/* now we have enough data for processing */
@@ -105,8 +105,9 @@ Pitchshift.prototype.process = function (pitchShift, numSampsToProcess, osamp, i
           //this.gFFTworksp[k][1] = 0.;
       }
 
-      this.fft.forward(this.gFFTworksp);
-
+      // this.fft.forward(this.gFFTworksp);
+      // console.log(this.fft.real[1])
+      this.fft = fftIn
      /* this is the analysis step */
      for (k = 0; k <= fftFrameSize2; k++) {
         //These ifs make the pitchshifter code dependent on the DFT implementation; we should decorate DFTs instead.

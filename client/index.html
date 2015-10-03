@@ -144,13 +144,21 @@
 
     <!-- Magic goes here -->
     <script src="text.js"></script>
+    <script src="bandeord.js"></script>
     <script>
       var tekster = [[], []]
+      var textLength = 4
       tekster.forEach(tekst => {
-        while(text.length && tekst.length < 500) {
+        while(text.length && tekst.length < textLength) {
           var ekstra = text.splice(Math.floor(Math.random() * text.length), 1)[0]
           ekstra.forEach(line => tekst.push(line))
         }
+      })
+      tekster = tekster.map(tekst => {
+        var ting = tekst.slice(0, textLength)
+        var ord = bandeord.splice(Math.floor(Math.random() * bandeord.length), 1)[0]
+        ting.push(ord.word + ' (' + ord.means + ')')
+        return ting
       })
       console.log(tekster)
       var rappers = [

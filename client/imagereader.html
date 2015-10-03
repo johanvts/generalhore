@@ -1,0 +1,31 @@
+<body>
+<script>
+
+var width = 500
+var height = 100
+
+var img = new Image()
+img.crossOrigin="anonymous"
+img.src = 'https://farm9.staticflickr.com/8693/16891485046_dd0615aab3_o_d.jpg'
+img.addEventListener("load", function() {
+  var canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+  document.body.appendChild(canvas)
+
+  var data = canvas.getContext('2d').getImageData(0, 0, width, height).data
+
+  for (var x = 0; x < width; x++) {
+    var slice = []
+    var pointer
+    for (var y = 0; y < height; y++) {
+      start = (x * height + y) * 3
+      slice[y] = (data[start + 0] + data[start + 1] + data[start + 2]) / 3
+    }
+    console.log(slice)
+  }
+})
+
+</script>
+</body>

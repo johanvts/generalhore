@@ -24,6 +24,9 @@ Nogle eksempler på rap genereret af vores net:
     I alle de første er vi de line luder
 
 
+Noget mere freestyle:
+
+
     x er lige hot sprit
     Grak det op i det liv på igen
     Og fortælle homie hvad hun vil ha et skid
@@ -35,6 +38,9 @@ Nogle eksempler på rap genereret af vores net:
     bag nu der sluttede løgn og gror
     Og blive død af vores ben, ta og holde af dig til at skills
     Er der noget had, og har prøvet bænk af tid til
+
+
+Mere poetisk:
 
 
     mplompenner til dine limelight a en fucking lille faggot som trode det var et like in town'

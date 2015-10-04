@@ -1,4 +1,4 @@
 # generalhore
 Undskyld generalhore, det var ikke sådan det skulle gå.
 
-![](http://imgur.com/sr7idrr)
+![](http://i.imgur.com/sr7idrr.jpg)

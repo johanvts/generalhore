@@ -18,11 +18,14 @@
         float: left;
         clear: left;
         transform-origin: 150% 35%;
+        text-align: right;
+        margin-right: 0;
       }
       .right {
         float: right;
         clear: right;
         transform-origin: -50% 35%;
+        margin-left: 0;
       }
       .hidden {
         display: none;
@@ -60,7 +63,7 @@
       }
 
       .rap {
-        width: 50%;
+        width: 55%;
         margin: 5%;
         font-size: 5vw;
         color: yellow;
@@ -154,13 +157,18 @@
           ekstra.forEach(line => tekst.push(line))
         }
       })
-      tekster = tekster.map(tekst => {
-        var ting = tekst.slice(0, textLength)
-        var ord = bandeord.splice(Math.floor(Math.random() * bandeord.length), 1)[0]
-        ting.push(ord.word + ' (' + ord.means + ')')
-        return ting
-      })
       console.log(tekster)
+      var lines = []
+      for (var i = 0; i < 4; i++) {
+        var rapper = i % 2
+        for (var j = 0; j < textLength / 2; j++) {
+          lines.push({rapper: rapper, line: tekster[rapper].shift()})
+        }
+        var ord = bandeord.splice(Math.floor(Math.random() * bandeord.length), 1)[0]
+        // lines.push({rapper: rapper, line: ord.word + ' (' + ord.means + ')'})
+        lines.push({rapper: rapper, line: ord.word + '!'})
+      }
+      console.log(lines)
       var rappers = [
         document.querySelector('#one'),
         document.querySelector('#two'),
@@ -177,23 +185,30 @@
         document.querySelector('#one .name'),
         document.querySelector('#two .name'),
       ]
-      var rapping = 0
-      var count = 0
+      // var rapping = 0
       function sayStuff (text) {
         var danish = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('da'))[0]
         var utterance = new SpeechSynthesisUtterance(text)
         utterance.voice = danish
         window.speechSynthesis.speak(utterance)
       }
+      var count = 0
       function textTrigger () {
-        raps[rapping].innerHTML = tekster[rapping][count]
-        sayStuff(tekster[rapping][count])
+        var line = lines[count++]
+        if (count > lines.length) location.reload()
+        rappers[line.rapper].classList.remove('hidden')
+        rappers[(line.rapper + 1) % 2].classList.add('hidden')
+        raps[line.rapper].classList.toggle('hidden')
+        raps[line.rapper].offsetWidth = raps[line.rapper].offsetWidth // Hack to trigger reflow
+        raps[line.rapper].classList.toggle('hidden')
+        raps[line.rapper].innerHTML = line.line
+        sayStuff(line.line)
       }
 
       window.speechSynthesis.getVoices()
       window.speechSynthesis.onvoiceschanged = () => {
 
-        var urlFlickr = 'https://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=b50ee4dcdb6c99df948ff2cfb7884df5&photoset_id=72157650969693930&format=json&nojsoncallback=1&api_sig=5cc443d844e515780fa8e44a34ce4108'
+        var urlFlickr = 'https://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=a151c839af1ac01c132de4e91113c249&photoset_id=72157650969693930&format=json&nojsoncallback=1&auth_token=72157659029244679-3ec40595e4d4a81a&api_sig=12157e3632bf4b03c855f11c6dda123c'
         var oReq = new XMLHttpRequest();
         oReq.addEventListener('load', stuff => {
           var photos = JSON.parse(oReq.responseText).photoset.photo
@@ -213,14 +228,8 @@
 
         setTimeout(() => {
           document.querySelector('#vs').classList.toggle('hidden')
-          rappers[1].classList.toggle('hidden')
           textTrigger()
-          setInterval(() => {
-            rappers.forEach(c => c.classList.toggle('hidden'))
-            rapping = rapping == 0 ? 1 : 0
-            textTrigger()
-            if (rapping == 1) count++
-          }, 5000);
+          setInterval(textTrigger, 5000);
         }, 10000);
       }
 

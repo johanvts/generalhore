@@ -36,17 +36,14 @@ function playTextWithPitchSpeed(text, shift, rate) {
       var inputData = inputBuffer.getChannelData(channel);
       var outputData = outputBuffer.getChannelData(channel);
 
-      // fft.forward(inputData)
-      // var data = getFrequencies([Math.random()*5000, Math.random()*5000, Math.random()*5000, Math.random()*5000, Math.random()*5000, Math.random()*5000, Math.random()*5000, Math.random()*5000, Math.random()*5000, Math.random()*5000], fftFrameSize, audioCtx.sampleRate)
       var data = fullFreqVector(getSlice(), fftFrameSize)
-      // console.log(data)
-      // data[200] = 100
 
       for (var i = 0; i < fft.real.length; i++) {
         fft.real[i] = data[i]
       }
-      // console.log(fft.real)
 
+      // Change shift processor from FreqSound to PitchShift to get pitchshifting instead
+      // shifter.process(shift, inputData.length, 4, inputData);
       shifter.process(shift, inputData.length, 4, inputData, fft);
       var out_data = outputData;
       for (i = 0; i < out_data.length; ++i) {

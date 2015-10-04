@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+  </head>
+<body>
+  <script src="js/dsp.js"></script>
+  <script src="js/freqSound.js"></script>
+<script>
+
+var fftFrameSize = 2048/2;
+
+function playTextWithPitchSpeed(text, shift, rate) {
+  var url = 'http://thingsinjars.com/lab/web-audio-tutorial/hello.mp3'
+  // var url = 'http://translate.google.com/translate_tts?tl=da&q=' + encodeURIComponent(text)
+  console.log(url)
+
+  var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  var fftFrameSize = 2048/2;
+  var nSamples = 2048/2;
+  var fft = new FFT(fftFrameSize, audioCtx.sampleRate);
+  // var shifter = new Pitchshift(fftFrameSize, audioCtx.sampleRate, 'FFT');
+  var shifter = new FreqSound(fftFrameSize, audioCtx.sampleRate, 'FFT');
+
+  var scriptNode = audioCtx.createScriptProcessor(nSamples, 1, 1);
+
+
+  // Give the node a function to process audio events
+  scriptNode.onaudioprocess = function(audioProcessingEvent) {
+    var inputBuffer = audioProcessingEvent.inputBuffer;
+    var outputBuffer = audioProcessingEvent.outputBuffer;
+
+    // Loop through the output channels (in this case there is only one)
+    for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
+      var inputData = inputBuffer.getChannelData(channel);
+      var outputData = outputBuffer.getChannelData(channel);
+
+      var data = fullFreqVector(getSlice(), fftFrameSize)
+
+      for (var i = 0; i < fft.real.length; i++) {
+        fft.real[i] = data[i]
+      }
+
+      // Change shift processor from FreqSound to PitchShift to get pitchshifting instead
+      // shifter.process(shift, inputData.length, 4, inputData);
+      shifter.process(shift, inputData.length, 4, inputData, fft);
+      var out_data = outputData;
+      for (i = 0; i < out_data.length; ++i) {
+          out_data[i] = shifter.outdata[i];
+      }
+    }
+  }
+
+  // create web audio api context
+
+  function startSound() {
+          // Note: this loads asynchronously
+          var request = new XMLHttpRequest();
+          request.open("GET", url, true);
+          request.responseType = "arraybuffer";
+
+          // Our asynchronous callback
+          request.onload = function() {
+              var audioData = request.response;
+              audioGraph(audioData);
+          };
+          request.send();
+      }
+
+    // This is the code we are interested in
+    function audioGraph(audioData) {
+      // create a sound source
+      soundSource = audioCtx.createBufferSource()
+      soundSource.playbackRate.value = rate
+      soundSource.connect(scriptNode)
+      scriptNode.connect(audioCtx.destination)
+
+      // The Audio Context handles creating source buffers from raw binary
+      audioCtx.decodeAudioData(audioData, function(soundBuffer){
+          soundSource.buffer = soundBuffer;
+          soundSource.start(audioCtx.currentTime);
+      });
+    }
+    startSound()
+  }
+
+  function fullFreqVector(inputFreq, fftFrameSize) {
+    var fftFrameSize_2 = fftFrameSize/2
+
+    if (inputFreq.length != fftFrameSize_2) {
+      console.log("length Error")
+    }
+    var out = new Array(fftFrameSize)
+    for (var i = 0; i < fftFrameSize_2; i++) {
+      out[i] = 0;
+    }
+    scale = 10
+    for (var i = 0; i < fftFrameSize_2; i+=scale) {
+      out[i/scale] = inputFreq[i];
+    }
+    out[fftFrameSize_2] = 0;
+
+    for (var i = 1; i<fftFrameSize_2; i++) {
+      out[fftFrameSize_2+i] = out[fftFrameSize_2-i]
+    }
+    return out
+  }
+
+  function getFrequencies(frequyencies, fftFrameSize, sampleRate) {
+    freqPerBin = sampleRate / fftFrameSize
+    fftFrameSize_2 = fftFrameSize/2
+    var out = new Array(fftFrameSize)
+    for (var i = 0; i <= fftFrameSize_2; i++) {
+      out[i] = 0;
+    }
+
+    for (var i = 0; i < frequyencies.length; i++) {
+      out[Math.floor(frequyencies[i]/freqPerBin)]=fftFrameSize/(frequyencies.length*2)
+    }
+
+    for (var i = 1; i<fftFrameSize_2; i++) {
+      out[fftFrameSize_2+i] = out[fftFrameSize_2-i]
+    }
+    return out
+  }
+
+  function getImage (url) {
+    return new Promise((resolve, reject) => {
+      var img = new Image()
+      img.crossOrigin= 'anonymous'
+      img.src = url
+      img.addEventListener('load', () => {
+        resolve(img)
+      })
+      document.body.appendChild(img)
+    })
+  }
+
+  function getSlices (url, pictureWidth, fftFrameSize) {
+    return new Promise(function(resolve, reject) {
+      var fftFrameSize_2 = fftFrameSize/2
+      var width = pictureWidth
+      // var height = 4096
+      var height = fftFrameSize_2
+
+      var img = new Image()
+      img.crossOrigin="anonymous"
+      img.src = url
+
+      var slices = []
+
+      img.addEventListener("load", function() {
+        var canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+        document.body.appendChild(canvas)
+
+        var data = canvas.getContext('2d').getImageData(0, 0, width, height).data
+
+        for (var x = 0; x < width; x++) {
+          var slice = []
+          var s
+          for (var y = 0; y < height; y++) {
+            s = (x + y * width) * 4
+            slice[y] = (data[s + 0] + data[s + 1] + data[s + 2]) / (3*255)
+            // slice[y] = slice[y]*fftFrameSize_2*1 //(1 - slice[y])*fftFrameSize_2*1
+            slice[y] = (1 - slice[y])*fftFrameSize_2*1
+          }
+          slices.push(slice.reverse())
+        }
+        resolve(slices);
+      })
+    })
+  }
+  var slices
+  var sliceIndex = -1
+  function getSlice() {
+    sliceIndex++
+    var i = sliceIndex%slices.length
+    // console.log(slices[i])
+    return slices[i]
+  }
+
+
+  // console.log(fullFreqVector([1,2,0,1,0,0,1,0], 16))
+  // function hello() {
+  //   return "helo"
+  // }
+  // getSlices('http://i.imgur.com/cBbnrYN.jpg')
+  // getSlices('file:///Users/aokholm/git/generalhore/soundGeneration/pic/line.png', fftFrameSize)
+  // getSlices('file:///Users/aokholm/git/generalhore/soundGeneration/pic/lightning2.jpg', fftFrameSize)
+  // getSlices('file:///Users/aokholm/git/generalhore/soundGeneration/pic/zeebra.png', fftFrameSize)
+  // getSlices('https://farm9.staticflickr.com/8693/16891485046_dd0615aab3_o_d.jpg')
+    // getSlices('http://i.imgur.com/2NkTmpS.jpg', fftFrameSize)
+// getSlices('http://bos.thebln.com/wp-content/uploads/sites/11/2015/07/lightning_last_year_by_oompa123.jpg', fftFrameSize)
+    // getSlices('http://i.imgur.com/2NkTmpS.jpg', 100, fftFrameSize)
+    // getSlices('file:///Users/aokholm/git/generalhore/soundGeneration/pic/beat.png', 400, fftFrameSize)
+    getSlices('https://farm8.staticflickr.com/7638/16295032003_ef5fa05542.jpg', 400, fftFrameSize)
+    .then(r => {
+      slices = r
+      // console.log(r)
+
+      playTextWithPitchSpeed("og se hende brænde", 1.0, 1.0)
+    });
+
+  </script>
+</body>

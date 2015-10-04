@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Generalhore</title>
+    <style>
+
+      * {
+        padding: 0;
+        margin: 0;
+      }
+
+      body {
+        font-family: Impact;
+      }
+
+      .left {
+        float: left;
+        clear: left;
+        transform-origin: 150% 35%;
+        text-align: right;
+        margin-right: 0;
+      }
+      .right {
+        float: right;
+        clear: right;
+        transform-origin: -50% 35%;
+        margin-left: 0;
+      }
+      .hidden {
+        display: none;
+      }
+
+      .rapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .profile {
+        width: 28%;
+        margin: 3%;
+      }
+
+      .profile img {
+        width: 100%;
+        -webkit-animation: pulsate 0.5s ease-out;
+        -webkit-animation-iteration-count: infinite;
+      }
+
+      @-webkit-keyframes pulsate {
+        0% {-webkit-transform: scale(0.95, 0.95);}
+        50% {-webkit-transform: scale(1.05, 1.05);}
+        100% {-webkit-transform: scale(0.95, 0.95);}
+      }
+
+      .rap, .name {
+        text-transform: uppercase;
+        color: white;
+      }
+
+      .rap {
+        width: 55%;
+        margin: 5%;
+        font-size: 5vw;
+        color: yellow;
+        -webkit-animation: fly 5s ease-out;
+      }
+
+      @-webkit-keyframes fly {
+        0% {-webkit-transform: scale(0, 0);}
+        10% {-webkit-transform: scale(1, 1);}
+        90% {-webkit-transform: scale(1, 1); opacity: 1;}
+        100% {-webkit-transform: scale(2, 2); opacity: 0;}
+      }
+
+      .name {
+        font-size: 2vw;
+        margin-top: 1em;
+        text-align: center;
+      }
+
+      #overlay, #player {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      #overlay {
+        background: black;
+        z-index: -1;
+        opacity: 0.65;
+      }
+
+      #player {
+        z-index: -2;
+      }
+
+      #player iframe {
+        width: 100%;
+        height: 100%;
+      }
+
+      #vs {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        z-index: 0;
+        color: white;
+        font-size: 10vw;
+        width: 10vw;
+        margin-left: -5vw;
+        text-align: center;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="one" class="rapper">
+      <div class="profile left">
+        <img>
+        <p class="name"></p>
+      </div>
+      <div class="rap right"></div>
+    </div>
+    <div id="vs">vs</div>
+    <div id="two" class="rapper">
+      <div class="profile right">
+        <img>
+        <p class="name"></p>
+      </div>
+      <div class="rap left"></div>
+    </div>
+    <!-- http://www.labnol.org/internet/youtube-video-background/27933/ -->
+    <div id="overlay"></div>
+    <div id="player"></div>
+
+    <!-- <audio id="beat" autoplay loop>
+      <source src="beat.mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio> -->
+
+    <!-- Magic goes here -->
+    <script src="text.js"></script>
+    <script src="js/getSlices.js"></script>
+    <script src="js/bandeord.js"></script>
+
+    <script>
+      loadSounds()
+      var audioData = []
+      var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      function loadSounds() {
+
+        soundsBase = "sounds/"
+        soundEndings = ".mp3"
+        names = ["BD0000", "BD0000", "CB", "CH", "CL", "CP", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
+
+        for (var i = 0; i < names.length; i++) {
+          loadSound(i, soundsBase + names[i] + soundEndings)
+        }
+
+        // create web audio api context
+        function loadSound(index, url) {
+          // Note: this loads asynchronously
+          var request = new XMLHttpRequest();
+          request.open("GET", url, true);
+          request.responseType = "arraybuffer";
+
+          // Our asynchronous callback
+          request.onload = function() {
+              audioData[index] = request.response;
+          };
+          request.send();
+        }
+      }
+
+      // This is the code we are interested in
+      function playSounds(indicies) {
+        for (var i = 0; i < indicies.length; i++) {
+          playSound(audioData[indicies[i]])
+        }
+      }
+
+      function playSound(audioData) {
+        // create a sound source
+        var soundSource = audioCtx.createBufferSource()
+        soundSource.connect(audioCtx.destination)
+
+        // The Audio Context handles creating source buffers from raw binary
+        audioCtx.decodeAudioData(audioData, function(soundBuffer){
+            soundSource.buffer = soundBuffer
+            soundSource.start()
+        })
+      }
+
+      function slice2sound(slice, threshold) {
+        var sound = []
+        var N = audioData.length
+        for (var i = 0; i < Math.min(slice.length,N); i++) {
+          if (slice[i] > threshold) {
+            sound.push(i)
+          }
+        }
+
+        if (sound.length === 0) {
+          return slice2sound(slice, threshold * 0.8)
+        }
+
+        return sound
+      }
+
+      var i = 0
+      function playLoop() {
+        window.setInterval(function(){
+          if (i%4 === 0) {
+            playSounds(slice2sound(getSlice().reverse(), 0.5))
+          }
+          playSounds(slice2sound(getSlice(), 0.5))
+          i++
+        }, 300);
+      }
+    </script>
+
+    <script>
+      var tekster = [[], []]
+      var textLength = 4
+      tekster.forEach(tekst => {
+        while(text.length && tekst.length < textLength) {
+          var ekstra = text.splice(Math.floor(Math.random() * text.length), 1)[0]
+          ekstra.forEach(line => tekst.push(line))
+        }
+      })
+      console.log(tekster)
+      var lines = []
+      for (var i = 0; i < 4; i++) {
+        var rapper = i % 2
+        for (var j = 0; j < textLength / 2; j++) {
+          lines.push({rapper: rapper, line: tekster[rapper].shift()})
+        }
+        var ord = bandeord.splice(Math.floor(Math.random() * bandeord.length), 1)[0]
+        // lines.push({rapper: rapper, line: ord.word + ' (' + ord.means + ')'})
+        lines.push({rapper: rapper, line: ord.word + '!'})
+      }
+      console.log(lines)
+      var rappers = [
+        document.querySelector('#one'),
+        document.querySelector('#two'),
+      ]
+      var raps = [
+        document.querySelector('#one .rap'),
+        document.querySelector('#two .rap'),
+      ]
+      var images = [
+        document.querySelector('#one img'),
+        document.querySelector('#two img'),
+      ]
+      var names = [
+        document.querySelector('#one .name'),
+        document.querySelector('#two .name'),
+      ]
+      // var rapping = 0
+      function sayStuff (text) {
+        var danish = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('da'))[0]
+        var utterance = new SpeechSynthesisUtterance(text)
+        utterance.voice = danish
+        window.speechSynthesis.speak(utterance)
+      }
+      var count = 0
+      function textTrigger () {
+        var line = lines[count++]
+        if (count > lines.length) location.reload()
+        rappers[line.rapper].classList.remove('hidden')
+        rappers[(line.rapper + 1) % 2].classList.add('hidden')
+        raps[line.rapper].classList.toggle('hidden')
+        raps[line.rapper].offsetWidth = raps[line.rapper].offsetWidth // Hack to trigger reflow
+        raps[line.rapper].classList.toggle('hidden')
+        raps[line.rapper].innerHTML = line.line
+        sayStuff(line.line)
+      }
+
+      function getFlickrUrl(photo) {
+        return `https://farm${photo.farm}.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}.jpg`
+      }
+
+      window.speechSynthesis.getVoices()
+      window.speechSynthesis.onvoiceschanged = () => {
+
+        var urlFlickr = 'https://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=a151c839af1ac01c132de4e91113c249&photoset_id=72157650969693930&format=json&nojsoncallback=1&auth_token=72157659029244679-3ec40595e4d4a81a&api_sig=12157e3632bf4b03c855f11c6dda123c'
+        var oReq = new XMLHttpRequest();
+        oReq.addEventListener('load', stuff => {
+          var photos = JSON.parse(oReq.responseText).photoset.photo
+          var chosen = [
+            photos.splice(Math.floor(Math.random() * photos.length), 1)[0],
+            photos.splice(Math.floor(Math.random() * photos.length), 1)[0],
+          ]
+          chosen.forEach((photo, i) => {
+            images[i].src = getFlickrUrl(photo)
+            names[i].innerHTML = photo.title.slice(4)
+            sayStuff(`I det ${i ? 'andet' : 'ene'} ringhjørne har vi: ${photo.title.slice(4)}`)
+          })
+          // getSlices('http://farm8.staticflickr.com/7638/16295032003_ef5fa05542.jpg', 200, 10)
+          getSlices(getFlickrUrl(photos.splice(Math.floor(Math.random() * photos.length), 1)[0]), 200, 10)
+          .then(function(r) {
+            slices = r // put slices in global slices array
+            playLoop()
+          })
+        });
+        oReq.open('GET', urlFlickr);
+        oReq.send();
+
+        setTimeout(() => {
+          document.querySelector('#vs').classList.toggle('hidden')
+          textTrigger()
+          setInterval(textTrigger, 5000);
+        }, 10000);
+      }
+
+      // http://www.westword.com/music/the-ten-best-rap-videos-of-all-time-5710102
+      var videos = [
+        'uuWQyfGa1yI',
+        'sNPnbI1arSE',
+        'Y34jC4I1m70',
+        'z5rRZdiu1UE',
+        'FPoKiGQzbSQ',
+        'co3qMdkucM0',
+      ]
+      var video = videos[Math.floor(Math.random() * videos.length)]
+
+      // 2. This code loads the IFrame Player API code asynchronously.
+      var tag = document.createElement('script');
+      tag.src = "http://www.youtube.com/player_api";
+      var firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+      // 3. This function creates an <iframe> (and YouTube player)
+      //    after the API code downloads.
+      var player;
+      function onYouTubePlayerAPIReady() {
+        player = new YT.Player('player', {
+          playerVars: {
+            'autoplay': 1,
+            'controls': 0,
+            'wmode':'opaque',
+            'iv_load_policy': '3',
+            'loop': '1',
+            'playlist': video,
+            'showinfo': 0,
+          },
+          videoId: video,
+          events: {'onReady': onPlayerReady}
+        });
+        console.log(player.f)
+      }
+
+      // 4. The API will call this function when the video player is ready.
+      function onPlayerReady(event) {
+        event.target.mute();
+      }
+
+      // var beat = document.getElementById("beat");
+      // beat.volume = 0.3;
+    </script>
+  </body>
+</html>

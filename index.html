@@ -140,14 +140,93 @@
     <div id="overlay"></div>
     <div id="player"></div>
 
-    <audio id="beat" autoplay loop>
+    <!-- <audio id="beat" autoplay loop>
       <source src="beat.mp3" type="audio/mpeg">
       Your browser does not support the audio element.
-    </audio>
+    </audio> -->
 
     <!-- Magic goes here -->
     <script src="text.js"></script>
-    <script src="bandeord.js"></script>
+    <script src="js/getSlices.js"></script>
+    <script src="js/bandeord.js"></script>
+
+    <script>
+      loadSounds()
+      var audioData = []
+      var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      function loadSounds() {
+
+        soundsBase = "sounds/"
+        soundEndings = ".mp3"
+        names = ["BD0000", "BD0000", "CB", "CH", "CL", "CP", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
+
+        for (var i = 0; i < names.length; i++) {
+          loadSound(i, soundsBase + names[i] + soundEndings)
+        }
+
+        // create web audio api context
+        function loadSound(index, url) {
+          // Note: this loads asynchronously
+          var request = new XMLHttpRequest();
+          request.open("GET", url, true);
+          request.responseType = "arraybuffer";
+
+          // Our asynchronous callback
+          request.onload = function() {
+              audioData[index] = request.response;
+          };
+          request.send();
+        }
+      }
+
+      // This is the code we are interested in
+      function playSounds(indicies) {
+        for (var i = 0; i < indicies.length; i++) {
+          playSound(audioData[indicies[i]])
+        }
+      }
+
+      function playSound(audioData) {
+        // create a sound source
+        var soundSource = audioCtx.createBufferSource()
+        soundSource.connect(audioCtx.destination)
+
+        // The Audio Context handles creating source buffers from raw binary
+        audioCtx.decodeAudioData(audioData, function(soundBuffer){
+            soundSource.buffer = soundBuffer
+            soundSource.start()
+        })
+      }
+
+      function slice2sound(slice, threshold) {
+        var sound = []
+        var N = audioData.length
+        for (var i = 0; i < Math.min(slice.length,N); i++) {
+          if (slice[i] > threshold) {
+            sound.push(i)
+          }
+        }
+
+        if (sound.length === 0) {
+          return slice2sound(slice, threshold * 0.8)
+        }
+
+        return sound
+      }
+
+      var i = 0
+      function playLoop() {
+        window.setInterval(function(){
+          if (i%4 === 0) {
+            playSounds(slice2sound(getSlice().reverse(), 0.5))
+          }
+          playSounds(slice2sound(getSlice(), 0.5))
+          i++
+        }, 300);
+      }
+    </script>
+
     <script>
       var tekster = [[], []]
       var textLength = 4
@@ -205,6 +284,10 @@
         sayStuff(line.line)
       }
 
+      function getFlickrUrl(photo) {
+        return `https://farm${photo.farm}.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}.jpg`
+      }
+
       window.speechSynthesis.getVoices()
       window.speechSynthesis.onvoiceschanged = () => {
 
@@ -217,10 +300,15 @@
             photos.splice(Math.floor(Math.random() * photos.length), 1)[0],
           ]
           chosen.forEach((photo, i) => {
-            var url = `https://farm${photo.farm}.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}.jpg`
-            images[i].src = url
+            images[i].src = getFlickrUrl(photo)
             names[i].innerHTML = photo.title.slice(4)
             sayStuff(`I det ${i ? 'andet' : 'ene'} ringhjørne har vi: ${photo.title.slice(4)}`)
+          })
+          // getSlices('http://farm8.staticflickr.com/7638/16295032003_ef5fa05542.jpg', 200, 10)
+          getSlices(getFlickrUrl(photos.splice(Math.floor(Math.random() * photos.length), 1)[0]), 200, 10)
+          .then(function(r) {
+            slices = r // put slices in global slices array
+            playLoop()
           })
         });
         oReq.open('GET', urlFlickr);
@@ -275,8 +363,8 @@
         event.target.mute();
       }
 
-      var beat = document.getElementById("beat");
-      beat.volume = 0.3;
+      // var beat = document.getElementById("beat");
+      // beat.volume = 0.3;
     </script>
   </body>
 </html>

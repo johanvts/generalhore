@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RapCleaner", "RapCleaner\RapCleaner.fsproj", "{D0D3CCAE-BB40-45E0-B54A-DB9327AFB07F}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RapGenerator", "RapGenerator\RapGenerator.fsproj", "{334C3DC2-FAA4-4A0E-AF65-29F97DD56489}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D0D3CCAE-BB40-45E0-B54A-DB9327AFB07F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0D3CCAE-BB40-45E0-B54A-DB9327AFB07F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0D3CCAE-BB40-45E0-B54A-DB9327AFB07F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0D3CCAE-BB40-45E0-B54A-DB9327AFB07F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{334C3DC2-FAA4-4A0E-AF65-29F97DD56489}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{334C3DC2-FAA4-4A0E-AF65-29F97DD56489}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{334C3DC2-FAA4-4A0E-AF65-29F97DD56489}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{334C3DC2-FAA4-4A0E-AF65-29F97DD56489}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

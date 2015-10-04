@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+  </head>
+<body>
+  <script src="js/getSlices.js"></script>
+<script>
+
+loadSounds()
+var audioData = []
+var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function loadSounds() {
+
+  soundsBase = "sounds/"
+  soundEndings = ".mp3"
+  names = ["BD0000", "BD0010", "CL", "CP", "MA", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
+  // names = ["BD0000", "BD0010", "CY0000", "SD0025", "SD0010", "SD0050", "OH25", "CP", "MA", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
+  // names = ["BD0000", "BD0010", "CB", "CH", "OH25", "CP", "MA", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
+  // names = ["BD0000", "BD0010", "CB", "CH", "OH25", "CP", "MA", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
+
+
+  for (var i = 0; i < names.length; i++) {
+    loadSound(i, soundsBase + names[i] + soundEndings)
+  }
+
+  // create web audio api context
+  function loadSound(index, url) {
+    // Note: this loads asynchronously
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+
+    // Our asynchronous callback
+    request.onload = function() {
+        audioData[index] = request.response;
+    };
+    request.send();
+  }
+}
+
+// This is the code we are interested in
+function playSounds(indicies, volume) {
+  for (var i = 0; i < indicies.length; i++) {
+    playSound(audioData[indicies[i]], volume)
+  }
+}
+
+function playSound(audioData, volume) {
+  // create a sound source
+  var soundSource = audioCtx.createBufferSource()
+  var gainNode = audioCtx.createGain();
+  gainNode.gain.value = volume;
+  soundSource.connect(gainNode);
+  gainNode.connect(audioCtx.destination)
+
+  // The Audio Context handles creating source buffers from raw binary
+  audioCtx.decodeAudioData(audioData, function(soundBuffer){
+      soundSource.buffer = soundBuffer
+      soundSource.start()
+  })
+}
+
+function slice2sound(slice, threshold) {
+  var sound = []
+  var N = audioData.length
+  for (var i = 0; i < Math.min(slice.length,N); i++) {
+    if (slice[i] > threshold) {
+      sound.push(i)
+    }
+  }
+  if (sound.length === 0) {
+    return slice2sound(slice, threshold * 0.8)
+  }
+
+  if (sound.length > 0.5*N) {
+    return slice2sound(slice, threshold * 1.3)
+  }
+  console.log(sound.length + " th " + threshold)
+  return sound
+}
+
+function getAveragePictureDensity(slices) {
+  sum = 0
+
+  for (var i=0; i < slices.length; i++) {
+    for (var j=0; j < slices[0].length; j++){
+      sum += slices[i][j]
+    }
+  }
+
+  return sum/(slices.length*slices[0].length)
+}
+
+var i = 0
+var vol = 0.2
+var defaultThrehold
+var beatFrequency = 300
+// function playLoop() {
+//   window.setInterval(function(){
+//     if (i%4 === 0) {
+//       playSounds(slice2sound(getSlice().reverse(), defaultThrehold), vol)
+//     }
+//     playSounds(slice2sound(getSlice(), defaultThrehold), vol)
+//     i++
+//   }, beatFrequency);
+// }
+
+function playLoop() {
+  window.setInterval(function(){
+    if (i%2 === 0) {
+      if (i%4 === 0) {
+        playSounds(slice2sound(getSlice().reverse(), defaultThrehold), vol)
+      }
+      playSounds(slice2sound(getSlice(), defaultThrehold), vol)
+    }
+
+    if (i%7 === 0) {
+      // playSounds(slice2sound(shuffle(getSlice().reverse()), defaultThrehold*1.3), vol)
+      playSounds(slice2sound(getSlice().reverse(), defaultThrehold*1.3), vol)
+    }
+    i++
+  }, beatFrequency/2);
+}
+
+
+function createAlert(text) {
+  playLoop()
+}
+
+// GOLDEN PIC getSlices('https://farm8.staticflickr.com/7638/16295032003_ef5fa05542.jpg', 200, 10)
+
+
+getSlices('https://farm4.staticflickr.com/3696/19367840884_b2dd0d76ea.jpg', 200, 15)
+.then(function(r) {
+  slices = r // put slices in global slices array
+  defaultThrehold = 1.4*getAveragePictureDensity(slices)
+})
+
+
+</script>
+
+<button onclick="createAlert('hadsalksjnd')">Click me</button>
+
+</body>
+</html>

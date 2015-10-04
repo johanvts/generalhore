@@ -1,0 +1,110 @@
+<meta charset="utf-8">
+<body>
+<script src="http://mohayonao.github.io/timbre.js/timbre.js"></script>
+<script>
+
+function getImage (url) {
+  return new Promise((resolve, reject) => {
+    var img = new Image()
+    img.crossOrigin= 'anonymous'
+    img.src = url
+    img.addEventListener('load', () => {
+      resolve(img)
+    })
+    document.body.appendChild(img)
+  })
+}
+
+function getSlices (url, width, height) {
+  return new Promise((resolve, reject) => {
+    getImage(url).then(img => {
+
+      var canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+      document.body.appendChild(canvas)
+
+      var data = canvas.getContext('2d').getImageData(0, 0, width, height).data
+      var slices = []
+      for (var x = 0; x < width; x++) {
+        var slice = []
+        var pointer
+        for (var y = 0; y < height; y++) {
+          start = (x + y * width) * 3
+          slice[y] = (data[start + 0] + data[start + 1] + data[start + 2]) / (3*255)
+        }
+        slices.push(slice)
+      }
+      resolve(slices);
+    })
+  })
+}
+
+getSlices(
+  // 'https://farm9.staticflickr.com/8693/16891485046_dd0615aab3_o_d.jpg',
+  // 'https://farm9.staticflickr.com/8737/16806474756_7254e7cbe9_o_d.jpg',
+  // 'http://i.imgur.com/cBbnrYN.jpg',
+  'http://i.imgur.com/PvYfW46.jpg',
+  500,
+  50
+).then(r => {
+  // 50-3000
+  console.log(r)
+  var sin = T("sin", {mul:0.01}).play();
+  var pulse = T("saw", {mul:0.020}).play();
+  var i = 0
+  setInterval(function () {
+    console.log(Math.floor(i/10), i%10)
+    sin.set({freq: r[Math.floor(i/10)][i%10] * 3000})
+    if (r[Math.floor(i/10)][i%10] < 0.5) {
+      pulse.play()
+      pulse.set({freq: r[Math.floor(i/10)][i%10] * 50})
+    } else {
+      pulse.stop()
+    }
+
+    i++
+  }, 300);
+});
+
+var escobar = [
+  "Jeg savner min gamle flamme",
+  "Og se hende brænde",
+  "Det grøn skær",
+  "Og det smil hun plejer at ram'",
+  "Løb ind i hendes kusine",
+  "Den lille vilde blondine",
+  "Hun gav godt hovede",
+  "til roden i halv anden time",
+  "Hun var kun til slem' dreng med penge",
+  "Men sagde at vi to sagtens ku hænge",
+  "Udvekslingsstudent med udløbet pas",
+  "Vilde nætter, fester 'en masse'",
+  "En seriøs tøs",
+  "Der gav den for hårdt",
+  "Kneppede med alt",
+  "Os' mit dankort",
+  "Der var ikke det sted vi ikk gjorde det",
+  "Alt fra toiletter",
+  "Til studiet, mørklagte porte",
+  "De ture vi tog var aldrig halvhjertet",
+  "Faldt så småt for dig",
+  "Kunne ikk bære det",
+  "Ingen søvn",
+  "Ingen appettit",
+  "Forsøgte at ta' det blidt",
+  "Men ku' ikk engang lidt",
+]
+// var escobar = "Jeg savner min gamle flamme. Og se hende brænde. Det grøn skær. Og det smil hun plejer at ram'. Løb ind i hendes kusine. Den lille vilde blondine. Hun gav godt hovede. til roden i halv anden time. Hun var kun til slem' dreng med penge. Men sagde at vi to sagtens ku hænge. Udvekslingsstudent med udløbet pas. Vilde nætter, fester 'en masse'. En seriøs tøs. Der gav den for hårdt. Kneppede med alt. Os' mit dankort. Der var ikke det sted vi ikk gjorde det. Alt fra toiletter. Til studiet, mørklagte porte. De ture vi tog var aldrig halvhjertet. Faldt så småt for dig. Kunne ikk bære det. Ingen søvn. Ingen appettit. Forsøgte at ta' det blidt. Men ku' ikk engang lidt. "
+window.speechSynthesis.onvoiceschanged = () => {
+  var danish = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('da'))[0]
+  for (line of escobar) {
+    var utterance = new SpeechSynthesisUtterance(line)
+    utterance.voice = danish
+    window.speechSynthesis.speak(utterance)
+  }
+}
+
+</script>
+</body>

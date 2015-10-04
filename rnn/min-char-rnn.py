@@ -4,10 +4,10 @@ BSD License
 """
 import numpy as np
 
-inputfile = 'grail.txt'
+inputfile = r'..\data\rap.in'
 
 # data I/O
-data = open(inputfile, 'r').read() # should be simple plain text file
+data = open(inputfile, 'r',encoding='utf8').read() # should be simple plain text file
 chars = list(set(data))
 data_size, vocab_size = len(data), len(chars)
 print ('data has %d , %d unique.' % (data_size, vocab_size))
@@ -16,7 +16,7 @@ ix_to_char = { i:ch for i,ch in enumerate(chars) }
 
 # hyperparameters
 hidden_size = 100 # size of hidden layer of neurons
-seq_length = 25 # number of steps to unroll the RNN for
+seq_length = 100 # number of steps to unroll the RNN for
 learning_rate = 1e-1
 
 # model parameters
@@ -93,7 +93,7 @@ while True:
   targets = [char_to_ix[ch] for ch in data[p+1:p+seq_length+1]]
 
   # sample from the model now and then
-  if n % 7000 == 0:
+  if n % 700 == 0:
     sample_ix = sample(hprev, inputs[0], 2000)
     txt = ''.join(ix_to_char[ix] for ix in sample_ix)
     print ('----\n %s \n----' % (txt, ))

@@ -78,7 +78,7 @@
       }
 
       .name {
-        font-size: 2vw;
+        font-size: 3vw;
         margin-top: 1em;
         text-align: center;
       }
@@ -146,85 +146,107 @@
     </audio> -->
 
     <!-- Magic goes here -->
-    <script src="text.js"></script>
+    <script src="js/text.js"></script>
     <script src="js/getSlices.js"></script>
     <script src="js/bandeord.js"></script>
 
     <script>
-      loadSounds()
-      var audioData = []
-      var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    loadSounds()
+    var audioData = []
+    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-      function loadSounds() {
+    function loadSounds() {
 
-        soundsBase = "sounds/"
-        soundEndings = ".mp3"
-        names = ["BD0000", "BD0000", "CB", "CH", "CL", "CP", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
+      soundsBase = "sounds/"
+      soundEndings = ".mp3"
+      // names = ["BD0000", "BD0010", "CB", "CH", "CL", "CP", "MA", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
+      names = ["BD0000", "BD0010", "CB", "CH", "OH25", "CP", "MA", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
 
-        for (var i = 0; i < names.length; i++) {
-          loadSound(i, soundsBase + names[i] + soundEndings)
+      for (var i = 0; i < names.length; i++) {
+        loadSound(i, soundsBase + names[i] + soundEndings)
+      }
+
+      // create web audio api context
+      function loadSound(index, url) {
+        // Note: this loads asynchronously
+        var request = new XMLHttpRequest();
+        request.open("GET", url, true);
+        request.responseType = "arraybuffer";
+
+        // Our asynchronous callback
+        request.onload = function() {
+            audioData[index] = request.response;
+        };
+        request.send();
+      }
+    }
+
+    // This is the code we are interested in
+    function playSounds(indicies, volume) {
+      for (var i = 0; i < indicies.length; i++) {
+        playSound(audioData[indicies[i]], volume)
+      }
+    }
+
+    function playSound(audioData, volume) {
+      // create a sound source
+      var soundSource = audioCtx.createBufferSource()
+      var gainNode = audioCtx.createGain();
+      gainNode.gain.value = volume;
+      soundSource.connect(gainNode);
+      gainNode.connect(audioCtx.destination)
+
+      // The Audio Context handles creating source buffers from raw binary
+      audioCtx.decodeAudioData(audioData, function(soundBuffer){
+          soundSource.buffer = soundBuffer
+          soundSource.start()
+      })
+    }
+
+    function slice2sound(slice, threshold) {
+      var sound = []
+      var N = audioData.length
+      for (var i = 0; i < Math.min(slice.length,N); i++) {
+        if (slice[i] > threshold) {
+          sound.push(i)
         }
+      }
+      if (sound.length === 0) {
+        return slice2sound(slice, threshold * 0.8)
+      }
 
-        // create web audio api context
-        function loadSound(index, url) {
-          // Note: this loads asynchronously
-          var request = new XMLHttpRequest();
-          request.open("GET", url, true);
-          request.responseType = "arraybuffer";
+      if (sound.length > 0.5*N) {
+        return slice2sound(slice, threshold * 1.3)
+      }
+      console.log(sound.length + " th " + threshold)
+      return sound
+    }
 
-          // Our asynchronous callback
-          request.onload = function() {
-              audioData[index] = request.response;
-          };
-          request.send();
+    function getAveragePictureDensity(slices) {
+      sum = 0
+
+      for (var i=0; i < slices.length; i++) {
+        for (var j=0; j < slices[0].length; j++){
+          sum += slices[i][j]
         }
       }
 
-      // This is the code we are interested in
-      function playSounds(indicies) {
-        for (var i = 0; i < indicies.length; i++) {
-          playSound(audioData[indicies[i]])
+      return sum/(slices.length*slices[0].length)
+    }
+
+    var i = 0
+    var vol = 0.15
+    var defaultThrehold
+    var beatFrequency = 300
+    function playLoop() {
+      window.setInterval(function(){
+        if (i%4 === 0) {
+          playSounds(slice2sound(getSlice().reverse(), defaultThrehold), vol)
         }
-      }
-
-      function playSound(audioData) {
-        // create a sound source
-        var soundSource = audioCtx.createBufferSource()
-        soundSource.connect(audioCtx.destination)
-
-        // The Audio Context handles creating source buffers from raw binary
-        audioCtx.decodeAudioData(audioData, function(soundBuffer){
-            soundSource.buffer = soundBuffer
-            soundSource.start()
-        })
-      }
-
-      function slice2sound(slice, threshold) {
-        var sound = []
-        var N = audioData.length
-        for (var i = 0; i < Math.min(slice.length,N); i++) {
-          if (slice[i] > threshold) {
-            sound.push(i)
-          }
-        }
-
-        if (sound.length === 0) {
-          return slice2sound(slice, threshold * 0.8)
-        }
-
-        return sound
-      }
-
-      var i = 0
-      function playLoop() {
-        window.setInterval(function(){
-          if (i%4 === 0) {
-            playSounds(slice2sound(getSlice().reverse(), 0.5))
-          }
-          playSounds(slice2sound(getSlice(), 0.5))
-          i++
-        }, 300);
-      }
+        playSounds(slice2sound(getSlice(), defaultThrehold), vol)
+        i++
+      }, beatFrequency);
+    }
     </script>
 
     <script>
@@ -245,7 +267,7 @@
         }
         var ord = bandeord.splice(Math.floor(Math.random() * bandeord.length), 1)[0]
         // lines.push({rapper: rapper, line: ord.word + ' (' + ord.means + ')'})
-        lines.push({rapper: rapper, line: ord.word + '!'})
+        lines[lines.length - 1].line = lines[lines.length - 1].line + ', ' + ord.word + '!'
       }
       console.log(lines)
       var rappers = [
@@ -308,6 +330,7 @@
           getSlices(getFlickrUrl(photos.splice(Math.floor(Math.random() * photos.length), 1)[0]), 200, 10)
           .then(function(r) {
             slices = r // put slices in global slices array
+            defaultThrehold = 1.2*getAveragePictureDensity(slices)
             playLoop()
           })
         });
@@ -317,7 +340,7 @@
         setTimeout(() => {
           document.querySelector('#vs').classList.toggle('hidden')
           textTrigger()
-          setInterval(textTrigger, 5000);
+          setInterval(textTrigger, 4500);
         }, 10000);
       }
 

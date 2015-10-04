@@ -1,4 +1,4 @@
-[
+var text = [
   [
      "dæk min kæp og du kan stille mig om det stop ",
      "Det kan jeg ikke se det, så bliver du rundt ",

@@ -4,38 +4,44 @@ import itertools
 import re
 import hashlib
 
+sem = asyncio.Semaphore(10)
+
 def clean_text(text):
     text = text.replace('<br />', '\n')
     text = re.sub('<.*?>', '', text)
+    text = text.replace('\r', '\n')
     text = re.sub('\n+', '\n', text)
+    text = text.strip()
     return text
 
 async def scrape_text(session, url):
-    print('scraping', url)
-    response = await session.request('GET', url)
+    #print('scraping', url)
+    with (await sem):
+        response = await session.request('GET', url)
     html = await response.read()
     raps = []
-    for post in re.findall('id="post_\d+">(.*?)</li>', html.decode('ISO-8859-1')):
-        print(post)
+    #for post in re.findall('id="post_\d+">(.*?)</li>', html.decode('ISO-8859-1'), flags=re.DOTALL):
+    for post in html.decode('ISO-8859-1').split('<!-- END TEMPLATE: postbit_legacy -->'):
         match = re.search('<a class="username .*?><strong>(.*?)</strong></a>', post)
-        match2 = re.search('<h2 class="title icon">(.*?)</h2>', post)
-        match3 = re.search('<blockquote.*?>(.*?)</blockquote>', post)
-        print(match, match2, match3)
+        match2 = re.search('<h2 class="title icon">(.*?)</h2>', post, flags=re.DOTALL)
+        match3 = re.search('<blockquote.*?>(.*?)</blockquote>', post, flags=re.DOTALL)
         if match and match2 and match3:
             name = match.group(1).strip().lower()
-            title = match.group(2).strip().lower()
+            title = match2.group(1).strip().lower()
             if name in title:
-                raps.append(clean_text(match.group(3)))
+                cleaned = clean_text(match3.group(1))
+                if len(cleaned) > 30:
+                    raps.append(cleaned)
     return raps
 
-# url -> async [text]]
 async def scrape_page(session, url):
-    response = await session.request('GET', url)
+    with (await sem):
+        response = await session.request('GET', url)
     html = await response.read()
-    lyrurls = re.findall('"showthread.php\?(.*?)"', html.decode('ISO-8859-1'))
+    lyrurls = re.findall('class="title" href="showthread.php\?(.*?)"', html.decode('ISO-8859-1'))
     lyrurls = [url for url in lyrurls if 'vs' in url or 'v-s' in url]
     lyrurls = ['http://rapbattles.com/showthread.php?' + url for url in lyrurls]
-    lyrs = await asyncio.gather(*[scrape_text(session, url) for url in lyrurls[:2]])
+    lyrs = await asyncio.gather(*[scrape_text(session, url) for url in lyrurls])
     return lyrs
 
 async def login(session):
@@ -66,11 +72,11 @@ async def login(session):
 async def scrape_main(session):
     await login(session)
     url = 'http://rapbattles.com/forumdisplay.php?197-Closed-Battles/page{}&s=&pp=1000000'
-    pages = [url.format(i) for i in range(1,2)]
-    #pages = [url.format(i) for i in range(1,37)]
+    pages = [url.format(i) for i in range(35,37)]
     for lyrs in await asyncio.gather(*[scrape_page(session, page) for page in pages]):
         for lyr in lyrs:
-            print(lyr)
+            for l in lyr:
+                print(l)
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()

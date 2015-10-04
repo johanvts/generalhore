@@ -4,14 +4,15 @@ import subprocess
 
 CV = '/home/generalen/char-rnn/cv/lm_lstm_epoch7.63_1.5315.t7'
 TORCH = '/home/generalen/torch/install/bin/th'
+SAMPLE = '/home/generalen/char-rnn/sample.lua'
 TEMP = '0.8'
 #th sample.lua cv/lm_rap_stor_rigtig_epoch0.36_1.5111.t7 -gpuid -1 -temperature 0.8 -primetext "En mand der går " -length 250 -verbose 0
 
 def get_rap(seed, length):
-    args = [TORCH, CV, '-gpuid', '-1',
+    args = [TORCH, CV, SAMPLE, '-gpuid', '-1',
             '-temperature', '0.8',
             '-primetext', seed,
-            '-length', length,
+            '-length', str(length),
             '-verbose', '0']
     sp = subprocess.Popen(args, stdout=subprocess.PIPE)
     so, se = sp.communicate()

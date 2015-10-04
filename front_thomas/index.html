@@ -1,0 +1,132 @@
+<html>
+   <head>
+      <meta charset='utf-8'/>
+      <link href='https://fonts.googleapis.com/css?family=Black+Ops+One|Frijole|Ruslan+Display|Passion+One' rel='stylesheet' type='text/css'>
+      <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+      <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+      <script>
+         fonte = ['Black Ops One', 'Frijole', 'Ruslan Display', 'Passion One'];
+         $(document).ready(function() {
+             tekster = [[
+               "Du ka ikke følge mit tempo, jeg kendt som ham der Sonic",
+               "Tjener money på at stik min pik ind i din honey",
+               "Jeg kalder hende for Connie selvom jeg ved hun hedder Lonnie",
+               "Blot for at se hendes forvirrede fjæs som jeg kan kom i",
+               "Hun er sgu for nasty og hun har klamme lange hængepatter",
+               "Du går falit, for når jeg knalder hende skal jeg ha penge af dig",
+               "Især fordi jeg tager hende på akkord i dobbelt tempo",
+               "Hun er så ulækker, at du skulle tage og holde dig væk nu"],
+               ["Mc Dværg, jeg ved at du har trang til min kæmpe croissant",
+               "Du har lige højden til at gag på min borgmester stang",
+               "For den er stor og fed, wienerbrød der gør dig blæs'",
+               "Så fortæl mig - vil du have creme eller glasur i dit fjæs",
+               "For jeg kringler det her rap, tager dig i det bagerste hul",
+               "For jeg er nasty, langt beskitdtere end et bagergulv",
+               "For jeg har så svært ved at styre mine dyriske lyster",
+               "Jeg putter ikke mine kager i ovnen, jeg putter dem i din søster"]];
+             i = 0;
+             j = 0;
+             window.setInterval(function() {
+                if (j == 0) {
+                   $('#p1').toggleClass('active', 300);
+                   if (i != 0)
+                      $('#p2').toggleClass('active', 300);
+                }
+                $('#vs').animate({
+                   'opacity': 0
+               });
+
+               $('#rap').animate({
+                  top: '10%',
+                  fontSize: '100pt',
+                  opacity: '0',
+                  width: '300%',
+                  height: '300%',
+                  left: '-100%'
+               }, 300, function(){});
+
+               $('#rap').delay( 300).queue(function(next){
+                  $(this).text(tekster[i][j]);
+                  $(this).css({
+                     'font-family': "'"+fonte[Math.floor(Math.random()*4)]+"'",
+                     'top': '33%',
+                     'width': '0',
+                     'height': '0',
+                     'fontSize': '0',
+                  });
+                  if (i % 2 == 0)
+                     $(this).css('left', '16%');
+                  else $(this).css('left', '85%');
+                  next();
+               });
+
+               $('#rap').delay(300).animate({
+                  top: '15%',
+                  left: '15%',
+                  width: '70%',
+                  height: '70%',
+                  fontSize: '60pt',
+                  opacity: '1'
+               }, 300, function(){});
+
+             j += 1;
+             if (j == tekster[i].length) {
+                i += 1;
+                j = 0;
+             }
+             }, 3000);
+
+         });
+      </script>
+      <style type='text/css'>
+         body {
+            background: black;
+         }
+         .scene1 #p1, .scene1 #p2 {
+            position: absolute;
+            width: 25%;
+            height: 50%;
+            top: 25%;
+            opacity: .7;
+         }
+         .scene1 #p1 {
+            left: 5%;
+         }
+         .scene1 #p2 {
+            right: 5%;
+         }
+         #p1.active, #p2.active {
+            width: 37%;
+            height: 75%;
+            top: 12%;
+            -webkit-animation: pulsate 0.5s ease-out;
+            -webkit-animation-iteration-count: infinite;
+            opacity:1;
+         }
+         .scene1 #rap, .scene1 #vs {
+            position: absolute;
+            left: 50%;
+            color: yellow;
+            text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px rgba(0,0,0,.1), 0 0 5px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.3), 0 3px 5px rgba(0,0,0,.2), 0 5px 10px rgba(0,0,0,.25), 0 10px 10px rgba(0,0,0,.2), 0 20px 20px rgba(0,0,0,.15);
+         }
+         .scene1 #vs {
+            color: white;
+            top: 50%;
+            font-size: 100pt;
+            transform: translate(-50%, -50%);
+         }
+
+        @-webkit-keyframes pulsate {
+          0% {-webkit-transform: scale(0.95, 0.95);}
+          50% {-webkit-transform: scale(1.05, 1.05);}
+          100% {-webkit-transform: scale(0.95, 0.95);}
+        }
+      </style>
+   </head>
+   <body class='scene1'>
+      <div id='vs'>VS</div>
+      <img src='b1.jpeg' id='p1'/>
+      <img src='b2.jpeg' id='p2'/>
+      <div id='rap'></div>
+   </body>
+</html>

@@ -15,8 +15,11 @@ function loadSounds() {
 
   soundsBase = "sounds/"
   soundEndings = ".mp3"
-  // names = ["BD0000", "BD0010", "CB", "CH", "CL", "CP", "MA", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
-  names = ["BD0000", "BD0010", "CB", "CH", "OH25", "CP", "MA", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
+  names = ["BD0000", "BD0010", "CL", "CP", "MA", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
+  // names = ["BD0000", "BD0010", "CY0000", "SD0025", "SD0010", "SD0050", "OH25", "CP", "MA", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
+  // names = ["BD0000", "BD0010", "CB", "CH", "OH25", "CP", "MA", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
+  // names = ["BD0000", "BD0010", "CB", "CH", "OH25", "CP", "MA", "CY0000", "SD0025", "SD0010", "SD0050", "RS"] // SD0010.mp3
+
 
   for (var i = 0; i < names.length; i++) {
     loadSound(i, soundsBase + names[i] + soundEndings)
@@ -94,15 +97,33 @@ var i = 0
 var vol = 0.2
 var defaultThrehold
 var beatFrequency = 300
+// function playLoop() {
+//   window.setInterval(function(){
+//     if (i%4 === 0) {
+//       playSounds(slice2sound(getSlice().reverse(), defaultThrehold), vol)
+//     }
+//     playSounds(slice2sound(getSlice(), defaultThrehold), vol)
+//     i++
+//   }, beatFrequency);
+// }
+
 function playLoop() {
   window.setInterval(function(){
-    if (i%4 === 0) {
-      playSounds(slice2sound(getSlice().reverse(), defaultThrehold), vol)
+    if (i%2 === 0) {
+      if (i%4 === 0) {
+        playSounds(slice2sound(getSlice().reverse(), defaultThrehold), vol)
+      }
+      playSounds(slice2sound(getSlice(), defaultThrehold), vol)
     }
-    playSounds(slice2sound(getSlice(), defaultThrehold), vol)
+
+    if (i%7 === 0) {
+      // playSounds(slice2sound(shuffle(getSlice().reverse()), defaultThrehold*1.3), vol)
+      playSounds(slice2sound(getSlice().reverse(), defaultThrehold*1.3), vol)
+    }
     i++
-  }, beatFrequency);
+  }, beatFrequency/2);
 }
+
 
 function createAlert(text) {
   playLoop()
@@ -111,10 +132,10 @@ function createAlert(text) {
 // GOLDEN PIC getSlices('https://farm8.staticflickr.com/7638/16295032003_ef5fa05542.jpg', 200, 10)
 
 
-getSlices('https://farm4.staticflickr.com/3696/19367840884_b2dd0d76ea.jpg', 200, 10)
+getSlices('https://farm4.staticflickr.com/3696/19367840884_b2dd0d76ea.jpg', 200, 15)
 .then(function(r) {
   slices = r // put slices in global slices array
-  defaultThrehold = 1.2*getAveragePictureDensity(slices)
+  defaultThrehold = 1.4*getAveragePictureDensity(slices)
 })
 
 

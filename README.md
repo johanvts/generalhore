@@ -51,3 +51,10 @@ Mere poetisk:
     du kommer yo A duder tric
     når det du hører nu er lyden affor du kan lige fordi du er for naiv for at få trede kappet om taster dig om har din proppet     i din krope må kendt ham en lort på en lort på en bitch
     som gam med dine for at være ham som in
+
+#RNN
+
+Teksterne er generet med @karpathys RNN, som findes her: 
+https://github.com/karpathy/char-rnn
+
+Teksterne er trænet på data fra rapbattles.dk, der er brugt en blocksize på 512 og 3 lag.
